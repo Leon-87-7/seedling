@@ -21,31 +21,37 @@ const OpportunityCards = ({ undervaluedStocks, onGenerateReport }) => {
                 <h3>{stock.symbol}</h3>
                 <p>{stock.name}</p>
               </div>
-              <div className="undervalued-badge">Undervalued</div>
+              <div className="undervalued-badge">{stock.valuation?.rating || stock.rating || 'Undervalued'}</div>
             </div>
             <div className="metrics-grid">
               <div className="metric">
                 <span className="metric-label">Price</span>
-                <span className="metric-value">${stock.price}</span>
+                <span className="metric-value">${(stock.currentPrice || stock.price || 0).toFixed(2)}</span>
               </div>
               <div className="metric">
                 <span className="metric-label">P/E Ratio</span>
-                <span className="metric-value">{stock.peRatio}</span>
+                <span className="metric-value">{(stock.metrics?.peRatio || stock.peRatio || 0).toFixed(1)}</span>
               </div>
               <div className="metric">
                 <span className="metric-label">ROE</span>
-                <span className="metric-value">{stock.roe}%</span>
+                <span className="metric-value">{(stock.metrics?.roe || stock.roe || 0).toFixed(1)}%</span>
               </div>
               <div className="metric">
                 <span className="metric-label">Change</span>
                 <span
                   className={`metric-value ${
-                    parseFloat(stock.change) >= 0 ? 'positive' : 'negative'
+                    parseFloat(stock.dayChangePercent || stock.change || 0) >= 0 ? 'positive' : 'negative'
                   }`}
                 >
-                  {stock.change}%
+                  {(stock.dayChangePercent || stock.change || 0).toFixed(2)}%
                 </span>
               </div>
+              {stock.valuation?.confidenceScore && (
+                <div className="metric">
+                  <span className="metric-label">Confidence</span>
+                  <span className="metric-value">{stock.valuation.confidenceScore}%</span>
+                </div>
+              )}
             </div>
             <button
               className="ai-report-btn"

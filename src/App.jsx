@@ -1,142 +1,49 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 import './App.css';
+import './components/auth/auth.css';
 
 // Components
-import Header from './components/Header';
-import SectorDropdown from './components/SectorDropdown';
-import Chart from './components/Chart';
-import OpportunityCards from './components/OpportunityCards';
-import DataTable from './components/DataTable';
-import Footer from './components/Footer';
-
-// Constants
-import { SECTOR_STOCKS } from './constants/sectorData';
+import LandingPage from './components/LandingPage';
+import Login from './components/auth/Login';
+import Signup from './components/auth/Signup';
+import Dashboard from './components/Dashboard';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
-  const [selectedSector, setSelectedSector] = useState('healthcare');
-  const [stockData, setStockData] = useState([]);
-  const [sectorMean, setSectorMean] = useState(0);
-  const [sectorPE, setSectorPE] = useState(0);
-  const [sectorPB, setSectorPB] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const generateMockMetrics = () => ({
-    price: Math.floor(Math.random() * 400) + 50,
-    peRatio: (Math.random() * 30 + 5).toFixed(2),
-    pbRatio: (Math.random() * 5 + 0.5).toFixed(2),
-    roe: (Math.random() * 25 + 5).toFixed(2),
-    change: (Math.random() * 10 - 5).toFixed(2),
-    rating: Math.random() > 0.3 ? 'Undervalued' : 'Fair Value',
-  });
-
-  const fetchStockData = async (sector) => {
-    setLoading(true);
-    const stocks = SECTOR_STOCKS[sector];
-
-    const stockPrices = stocks.map((stock) => ({
-      ...stock,
-      ...generateMockMetrics(),
-    }));
-
-    const mean =
-      stockPrices.reduce((sum, stock) => sum + stock.price, 0) /
-      stockPrices.length;
-    
-    const avgPE =
-      stockPrices.reduce((sum, stock) => sum + parseFloat(stock.peRatio), 0) /
-      stockPrices.length;
-    
-    const avgPB =
-      stockPrices.reduce((sum, stock) => sum + parseFloat(stock.pbRatio), 0) /
-      stockPrices.length;
-
-    // Sort stocks by price in ascending order (lowest to highest)
-    const sortedStockPrices = stockPrices.sort((a, b) => a.price - b.price);
-
-    setStockData(sortedStockPrices);
-    setSectorMean(Math.round(mean * 100) / 100);
-    setSectorPE(Math.round(avgPE * 100) / 100);
-    setSectorPB(Math.round(avgPB * 100) / 100);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchStockData(selectedSector);
-  }, [selectedSector]);
-
-  const handleSectorChange = (sector) => {
-    setSelectedSector(sector);
-    setDropdownOpen(false);
-  };
-
-  const getUndervaluedStocks = () => {
-    return stockData
-      .filter(
-        (stock) =>
-          stock.rating === 'Undervalued' && stock.price < sectorMean
-      )
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 2);
-  };
-
-  const generateAIReport = (stock) => {
-    alert(
-      `Generating AI report for ${stock.name} (${stock.symbol})...\n\nThis would open a detailed analysis including:\n- Technical indicators\n- Fundamental analysis\n- Risk assessment\n- Price targets`
-    );
-  };
+  const { currentUser } = useAuth();
 
   return (
     <div className="app">
-      <Header />
-
-      <main className="main-content">
-        {/* Hero Section */}
-        <section className="hero-section">
-          <h1>Market Mean Reversion Analysis</h1>
-          <p>
-            Identify undervalued opportunities with advanced sector
-            analysis and AI-powered insights
-          </p>
-        </section>
-
-        <SectorDropdown
-          selectedSector={selectedSector}
-          sectors={SECTOR_STOCKS}
-          dropdownOpen={dropdownOpen}
-          setDropdownOpen={setDropdownOpen}
-          onSectorChange={handleSectorChange}
+      <Routes>
+        {/* Public routes */}
+        <Route 
+          path="/" 
+          element={currentUser ? <Navigate to="/dashboard" /> : <LandingPage />} 
         />
-
-        {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>Analyzing market data...</p>
-          </div>
-        ) : (
-          <>
-            <Chart
-              stockData={stockData}
-              sectorMean={sectorMean}
-              sectorPE={sectorPE}
-              sectorPB={sectorPB}
-              selectedSector={selectedSector}
-            />
-
-            <OpportunityCards
-              undervaluedStocks={getUndervaluedStocks()}
-              onGenerateReport={generateAIReport}
-            />
-
-            <DataTable
-              stockData={stockData}
-              onAnalyze={generateAIReport}
-            />
-          </>
-        )}
-      </main>
-
-      <Footer />
+        <Route 
+          path="/login" 
+          element={currentUser ? <Navigate to="/dashboard" /> : <Login />} 
+        />
+        <Route 
+          path="/signup" 
+          element={currentUser ? <Navigate to="/dashboard" /> : <Signup />} 
+        />
+        
+        {/* Protected routes */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </div>
   );
 }

@@ -95,8 +95,10 @@ const Chart = ({
               width={60}
               domain={['dataMin - 20', 'dataMax + 20']}
               ticks={(() => {
-                const min = Math.min(...stockData.map(s => s.price)) - 20;
-                const max = Math.max(...stockData.map(s => s.price)) + 20;
+                if (stockData.length === 0) return [];
+                const prices = stockData.map(s => s.currentPrice || s.price || 0);
+                const min = Math.min(...prices) - 20;
+                const max = Math.max(...prices) + 20;
                 const step = (max - min) / 5;
                 const regularTicks = [...Array(6)].map((_, i) => Math.round(min + (step * i)));
                 // Add sector mean to the ticks and sort them
@@ -138,17 +140,20 @@ const Chart = ({
               strokeWidth={2}
             />
             <Bar
-              dataKey="price"
+              dataKey="currentPrice"
               name="Stock Price ($)"
               radius={[0, 0, 0, 0]}
               stroke="none"
             >
-              {stockData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.price < sectorMean ? '#10b981' : '#3b82f6'}
-                />
-              ))}
+              {stockData.map((entry, index) => {
+                const price = entry.currentPrice || entry.price || 0;
+                return (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={price < sectorMean ? '#10b981' : '#3b82f6'}
+                  />
+                );
+              })}
             </Bar>
           </BarChart>
         </ResponsiveContainer>

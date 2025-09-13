@@ -23,25 +23,37 @@ const DataTable = ({ stockData, onAnalyze }) => {
               <tr key={stock.symbol}>
                 <td className="symbol-cell">{stock.symbol}</td>
                 <td className="company-cell">{stock.name}</td>
-                <td className="price-cell">${stock.price}</td>
-                <td className="market-cap-cell">{stock.marketCap}</td>
-                <td className="pe-cell">{stock.peRatio}</td>
-                <td className="pb-cell">{stock.pbRatio}</td>
-                <td className="roe-cell">{stock.roe}%</td>
+                <td className="price-cell">${(stock.currentPrice || stock.price || 0).toFixed(2)}</td>
+                <td className="market-cap-cell">
+                  {stock.marketCap ? 
+                    `$${(stock.marketCap / 1e9).toFixed(1)}B` : 
+                    'N/A'
+                  }
+                </td>
+                <td className="pe-cell">
+                  {(stock.metrics?.peRatio || stock.peRatio || 0).toFixed(1)}
+                </td>
+                <td className="pb-cell">
+                  {(stock.metrics?.pbRatio || stock.pbRatio || 0).toFixed(2)}
+                </td>
+                <td className="roe-cell">
+                  {(stock.metrics?.roe || stock.roe || 0).toFixed(1)}%
+                </td>
                 <td
                   className={`change-cell ${
-                    parseFloat(stock.change) >= 0 ? 'positive' : 'negative'
+                    parseFloat(stock.dayChangePercent || stock.change || 0) >= 0 ? 'positive' : 'negative'
                   }`}
                 >
-                  {stock.change}%
+                  {(stock.dayChangePercent || stock.change || 0).toFixed(2)}%
                 </td>
                 <td className="rating-cell">
                   <span
                     className={`rating-badge ${
-                      stock.rating === 'Undervalued' ? 'undervalued' : 'fair'
+                      (stock.valuation?.rating || stock.rating) === 'Undervalued' ? 'undervalued' : 
+                      (stock.valuation?.rating || stock.rating) === 'Overvalued' ? 'overvalued' : 'fair'
                     }`}
                   >
-                    {stock.rating}
+                    {stock.valuation?.rating || stock.rating || 'Unknown'}
                   </span>
                 </td>
                 <td className="action-cell">
