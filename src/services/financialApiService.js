@@ -1,6 +1,6 @@
 // Financial API Service
 // This service handles integration with various financial data providers
-// Currently supports Alpha Vantage, IEX Cloud, and Yahoo Finance
+// Currently supports Alpha Vantage and Yahoo Finance (IEX Cloud retired Aug 2024)
 
 import { stockDataService } from './firestoreService';
 
@@ -8,18 +8,11 @@ import { stockDataService } from './firestoreService';
 const API_CONFIG = {
   ALPHA_VANTAGE: {
     baseUrl: 'https://www.alphavantage.co/query',
-    apiKey: process.env.REACT_APP_ALPHA_VANTAGE_API_KEY || 'demo', // Replace with your API key
+    apiKey: import.meta.env.VITE_ALPHA_VANTAGE_API_KEY || 'demo', // Replace with your API key
     rateLimitPerMinute: 5,
     rateLimitPerDay: 500
   },
-  
-  IEX_CLOUD: {
-    baseUrl: 'https://cloud.iexapis.com/stable',
-    apiKey: process.env.REACT_APP_IEX_CLOUD_API_KEY || 'pk_test', // Replace with your API key
-    rateLimitPerSecond: 100,
-    sandbox: process.env.NODE_ENV !== 'production'
-  },
-  
+
   YAHOO_FINANCE: {
     baseUrl: 'https://query1.finance.yahoo.com/v8/finance/chart',
     // Yahoo Finance API doesn't require an API key but has rate limits
@@ -125,71 +118,6 @@ class AlphaVantageClient {
   }
 }
 
-// API Client for IEX Cloud
-class IEXCloudClient {
-  constructor() {
-    this.baseUrl = API_CONFIG.IEX_CLOUD.baseUrl;
-    this.apiKey = API_CONFIG.IEX_CLOUD.apiKey;
-    this.sandbox = API_CONFIG.IEX_CLOUD.sandbox;
-    
-    if (this.sandbox) {
-      this.baseUrl = this.baseUrl.replace('cloud.iexapis.com/stable', 'sandbox.iexapis.com/stable');
-    }
-  }
-
-  async makeRequest(endpoint) {
-    const url = `${this.baseUrl}${endpoint}?token=${this.apiKey}`;
-    
-    try {
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`IEX Cloud API error: ${response.statusText}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('IEX Cloud API request failed:', error);
-      throw error;
-    }
-  }
-
-  async getQuote(symbol) {
-    const data = await this.makeRequest(`/stock/${symbol}/quote`);
-    
-    return {
-      symbol: data.symbol,
-      name: data.companyName,
-      currentPrice: data.latestPrice,
-      previousClose: data.previousClose,
-      dayChange: data.change,
-      dayChangePercent: data.changePercent * 100,
-      volume: data.latestVolume,
-      marketCap: data.marketCap,
-      peRatio: data.peRatio,
-      lastUpdated: new Date(data.latestUpdate)
-    };
-  }
-
-  async getKeyStats(symbol) {
-    const data = await this.makeRequest(`/stock/${symbol}/stats`);
-    
-    return {
-      symbol: symbol,
-      peRatio: data.peRatio,
-      pbRatio: data.priceToBook,
-      pegRatio: data.pegRatio,
-      roe: data.returnOnEquity,
-      roa: data.returnOnAssets,
-      currentRatio: data.currentRatio,
-      quickRatio: data.quickRatio,
-      debtToEquity: data.debtToEquity,
-      grossMargin: data.grossProfit / data.revenue,
-      operatingMargin: data.operatingIncome / data.revenue,
-      netMargin: data.netIncome / data.revenue
-    };
-  }
-}
 
 // Yahoo Finance Client (free, no API key required)
 class YahooFinanceClient {
@@ -235,10 +163,9 @@ class YahooFinanceClient {
 export class FinancialApiService {
   constructor() {
     this.alphaVantage = new AlphaVantageClient();
-    this.iexCloud = new IEXCloudClient();
     this.yahooFinance = new YahooFinanceClient();
-    
-    // Default to Alpha Vantage, fallback to others
+
+    // Default to Alpha Vantage, fallback to Yahoo Finance
     this.primaryProvider = 'alpha_vantage';
   }
 
@@ -250,7 +177,6 @@ export class FinancialApiService {
     // Try providers in order of preference
     const providers = [
       { name: 'alpha_vantage', client: this.alphaVantage },
-      { name: 'iex_cloud', client: this.iexCloud },
       { name: 'yahoo_finance', client: this.yahooFinance }
     ];
 
@@ -349,13 +275,8 @@ export class FinancialApiService {
     try {
       return await this.alphaVantage.getCompanyOverview(symbol);
     } catch (error) {
-      // Fallback to IEX Cloud for key stats
-      try {
-        return await this.iexCloud.getKeyStats(symbol);
-      } catch (fallbackError) {
-        console.warn('Both Alpha Vantage and IEX Cloud failed for overview:', error.message);
-        return null;
-      }
+      console.warn('Alpha Vantage failed for overview:', error.message);
+      return null;
     }
   }
 

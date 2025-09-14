@@ -5,6 +5,171 @@ All notable changes to the "Seedling🌱" Market Analysis Platform will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-09-14
+
+### 🎯 Demo Mode & User Experience Enhancements
+
+#### **Demo Mode Implementation**
+
+- **Public Dashboard Access**: Removed authentication requirement for demo users
+  - Dashboard route now accessible without login for demonstration purposes
+  - Automatic mock data generation for unauthenticated users
+  - "Try Demo" button added to landing page for immediate platform access
+  - Demo mode detection with appropriate UI indicators and messaging
+
+#### **Enhanced Landing Page**
+
+- **Demo Button**: New "Try Demo" call-to-action button between signup and login
+  - Direct navigation to dashboard for immediate platform exploration
+  - Positioned strategically in hero section for maximum visibility
+  - Allows prospective users to experience full platform functionality
+
+#### **Mock Data Fallback System**
+
+- **Smart Data Loading**: Intelligent data source selection based on user authentication status
+  - Demo users: Immediate mock data generation with "Demo Mode" indicators
+  - Authenticated users: Real API data with fallback to mock data on API failure
+  - Consistent data structure across both modes for seamless user experience
+  - Realistic financial metrics generation (stock prices, P/E ratios, valuations)
+
+#### **Demo User Interface**
+
+- **Demo-Specific UI Elements**: Customized interface for demonstration mode
+  - Header displays "Demo Mode - Try our platform!" instead of user greeting
+  - "Back to Home" button replaces "Sign Out" for demo users
+  - Clear "Demo Mode - Using sample data" banner for transparency
+  - Maintains full functionality while clearly indicating demo status
+
+### 🔧 Technical Improvements
+
+#### **Routing Architecture**
+
+- **Public Dashboard Route**: Modified App.jsx to allow direct dashboard access
+  - Removed ProtectedRoute wrapper from dashboard route
+  - Maintained security for authenticated user features
+  - Clean separation between demo and authenticated user experiences
+
+#### **Authentication Detection**
+
+- **User State Handling**: Enhanced authentication state management
+  - Conditional rendering based on `currentUser` state
+  - Graceful handling of null authentication states
+  - Consistent user experience regardless of authentication status
+
+### 🎨 User Experience
+
+#### **Seamless Demo Experience**
+
+- **Immediate Access**: No barriers to platform exploration
+  - One-click access from landing page to full dashboard
+  - Complete sector analysis functionality in demo mode
+  - Interactive charts, opportunity cards, and data tables
+  - AI report generation framework with demo notifications
+
+#### **Clear Demo Indicators**
+
+- **Transparent Communication**: Users always know when using demo mode
+  - Consistent demo messaging across all UI components
+  - Professional presentation maintains platform credibility
+  - Easy transition path from demo to full registration
+
+---
+
+## [2.1.0] - 2025-01-14
+
+### 🔐 Authentication Enhancements
+
+#### **Google Authentication Integration**
+
+- **Google Sign-In/Sign-Up**: Complete OAuth2 integration with Firebase
+  - Added Google authentication provider to Firebase configuration
+  - Implemented `signInWithGoogle()` function in AuthContext with automatic profile creation
+  - Added Google sign-in buttons to both Login and Signup components
+  - Professional Google logo integration with official branding guidelines
+  - Comprehensive error handling for popup-related issues and network failures
+  - Automatic user profile creation in Firestore for new Google users
+  - Seamless integration with existing email/password authentication flow
+
+#### **Enhanced Authentication UI**
+
+- **OAuth Divider**: Professional "or" separator between authentication methods
+- **Google Button Styling**: Clean, accessible design matching Google's brand guidelines
+- **Improved Error Handling**: Specific error messages for Google authentication scenarios
+- **Consistent User Experience**: Unified authentication flow regardless of sign-in method
+
+### 🔧 API Infrastructure Updates
+
+#### **Financial Data Provider Optimization**
+
+- **IEX Cloud API Removal**: Removed defunct IEX Cloud integration following official retirement (August 31, 2024)
+  - Deleted entire IEXCloudClient class and related configuration
+  - Updated fallback strategy to use Alpha Vantage (primary) and Yahoo Finance (secondary)
+  - Simplified error handling with fewer potential failure points
+  - Updated documentation to reflect two-provider architecture
+
+#### **Environment Variable Standardization**
+
+- **Vite Environment Variables**: Migrated from Create React App to Vite format
+  - Updated API keys from `process.env.REACT_APP_*` to `import.meta.env.VITE_*`
+  - Standardized environment variable naming convention
+  - Improved development environment consistency
+  - Updated Firebase configuration to use Vite environment variables
+
+### 📚 Documentation Updates
+
+#### **CLAUDE.md Improvements**
+
+- **Authentication Documentation**: Added Google OAuth setup instructions
+- **API Provider Updates**: Updated financial data provider documentation
+- **Environment Setup**: Clarified required environment variables
+- **Firebase Configuration**: Enhanced setup instructions for authentication providers
+
+#### **Development Workflow**
+
+- **Simplified Setup**: Reduced complexity with fewer API dependencies
+- **Enhanced Reliability**: More robust fallback system with proven providers
+- **Better Error Recovery**: Improved handling of API failures and rate limiting
+
+### 🛠️ Technical Improvements
+
+#### **Code Quality**
+
+- **Dependency Cleanup**: Removed unused IEX Cloud dependencies and code
+- **Error Handling**: Enhanced error messages and user feedback
+- **Performance**: Reduced bundle size by removing unused API client code
+- **Maintainability**: Simplified codebase with fewer external dependencies
+
+#### **Security Enhancements**
+
+- **OAuth2 Security**: Proper implementation of Google OAuth2 flow
+- **Environment Security**: Secure handling of API keys and configuration
+- **User Data Protection**: Enhanced user profile creation and management
+
+### 🎨 User Experience
+
+#### **Authentication Flow**
+
+- **Streamlined Sign-In**: Multiple authentication options with consistent UX
+- **Professional Design**: Clean, modern authentication interface
+- **Error Communication**: Clear, actionable error messages
+- **Mobile Optimization**: Touch-friendly authentication controls
+
+### 🔄 Migration Notes
+
+#### **For Existing Users**
+
+- **Environment Variables**: Update `.env` file to use `VITE_` prefixes
+- **API Keys**: Remove `VITE_IEX_CLOUD_API_KEY` (no longer needed)
+- **Firebase Console**: Enable Google authentication provider
+
+#### **For Developers**
+
+- **Simplified API Integration**: Easier to maintain with fewer providers
+- **Enhanced Documentation**: Updated setup and configuration guides
+- **Improved Error Handling**: Better debugging and user feedback
+
+---
+
 ## [2.0.0] - 2025-09-13
 
 ### 🚀 Major Platform Evolution
@@ -34,7 +199,7 @@ This release transforms Seedling from a simple market analysis tool into a compr
 
 - **Multi-Provider API Support**: Robust financial data fetching with fallbacks
   - Alpha Vantage integration (5 requests/min, 500/day)
-  - IEX Cloud integration (500K requests/month)  
+  - IEX Cloud integration (500K requests/month) - *Removed in v2.1.0 due to API retirement*
   - Yahoo Finance fallback (rate-limited but free)
 - **Advanced Valuation Analysis**: Sophisticated financial calculations
   - Graham Number calculation for conservative valuation

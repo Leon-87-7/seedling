@@ -2,13 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
   updateProfile
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { auth, db, googleProvider } from '../config/firebase';
 
 const AuthContext = createContext();
 
@@ -53,6 +54,39 @@ export function AuthProvider({ children }) {
   // Sign in function
   function signin(email, password) {
     return signInWithEmailAndPassword(auth, email, password);
+  }
+
+  // Google Sign in function
+  async function signInWithGoogle() {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Check if this is a new user and create profile if needed
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+      if (!userDoc.exists()) {
+        // Create user profile in Firestore for new Google users
+        await setDoc(doc(db, 'users', user.uid), {
+          email: user.email,
+          displayName: user.displayName || user.email.split('@')[0],
+          photoURL: user.photoURL || null,
+          provider: 'google',
+          createdAt: new Date().toISOString(),
+          watchlist: [],
+          preferences: {
+            defaultSector: 'healthcare',
+            alertsEnabled: true,
+            theme: 'light'
+          }
+        });
+      }
+
+      return user;
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      throw error;
+    }
   }
 
   // Sign out function
@@ -113,6 +147,7 @@ export function AuthProvider({ children }) {
     userProfile,
     signup,
     signin,
+    signInWithGoogle,
     logout,
     resetPassword,
     updateUserProfile,

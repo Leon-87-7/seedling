@@ -1,4 +1,12 @@
+import React from 'react';
+
 const DataTable = ({ stockData, onAnalyze }) => {
+  // Helper function to safely format numbers
+  const formatNumber = (value, decimals = 2) => {
+    const num = parseFloat(value);
+    return isNaN(num) ? '0.00' : num.toFixed(decimals);
+  };
+
   return (
     <section className="breakdown-section">
       <h2>Complete Sector Breakdown</h2>
@@ -23,28 +31,28 @@ const DataTable = ({ stockData, onAnalyze }) => {
               <tr key={stock.symbol}>
                 <td className="symbol-cell">{stock.symbol}</td>
                 <td className="company-cell">{stock.name}</td>
-                <td className="price-cell">${(stock.currentPrice || stock.price || 0).toFixed(2)}</td>
+                <td className="price-cell">${formatNumber(stock.currentPrice || stock.price || 0, 2)}</td>
                 <td className="market-cap-cell">
-                  {stock.marketCap ? 
-                    `$${(stock.marketCap / 1e9).toFixed(1)}B` : 
+                  {stock.marketCap ?
+                    `$${formatNumber(stock.marketCap / 1e9, 1)}B` :
                     'N/A'
                   }
                 </td>
                 <td className="pe-cell">
-                  {(stock.metrics?.peRatio || stock.peRatio || 0).toFixed(1)}
+                  {formatNumber(stock.metrics?.peRatio || stock.peRatio || 0, 1)}
                 </td>
                 <td className="pb-cell">
-                  {(stock.metrics?.pbRatio || stock.pbRatio || 0).toFixed(2)}
+                  {formatNumber(stock.metrics?.pbRatio || stock.pbRatio || 0, 2)}
                 </td>
                 <td className="roe-cell">
-                  {(stock.metrics?.roe || stock.roe || 0).toFixed(1)}%
+                  {formatNumber(stock.metrics?.roe || stock.roe || 0, 1)}%
                 </td>
                 <td
                   className={`change-cell ${
                     parseFloat(stock.dayChangePercent || stock.change || 0) >= 0 ? 'positive' : 'negative'
                   }`}
                 >
-                  {(stock.dayChangePercent || stock.change || 0).toFixed(2)}%
+                  {formatNumber(stock.dayChangePercent || stock.change || 0, 2)}%
                 </td>
                 <td className="rating-cell">
                   <span

@@ -4,117 +4,254 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-"Seedling🌱" is a React-based market analysis platform for identifying mean reversion opportunities in stock sectors. The application analyzes stocks across 5 sectors (Healthcare, Technology, Finance, Energy, Retail) and highlights undervalued opportunities using sector mean comparisons.
+"Seedling🌱" is a React-based financial analysis platform with Firebase backend integration. The application provides user authentication, portfolio tracking, watchlist management, and sector analysis for identifying undervalued investment opportunities across 11 primary sectors.
 
 ## Development Commands
 
 ### Primary Commands
 
-- `npm run dev` - Start development server with hot reload
+- `npm run dev` - Start development server with hot reload (runs on `http://localhost:5173`)
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build locally
 - `npm run lint` - Run ESLint on codebase
 
-### Development Server
-
-The app runs on `http://localhost:5173` by default using Vite.
-
 ## Architecture Overview
 
-### Component Structure
-
-The application uses a modular component architecture with clear separation of concerns:
+### Application Structure
 
 ```
 src/
-├── components/          # Reusable UI components
+├── components/
+│   ├── auth/            # Authentication components
+│   │   ├── Login.jsx
+│   │   ├── Signup.jsx
+│   │   ├── ProtectedRoute.jsx
+│   │   └── auth.css
 │   ├── Header.jsx       # Navigation and branding
-│   ├── SectorDropdown.jsx # Interactive sector selection
-│   ├── Chart.jsx        # Main data visualization (Recharts)
-│   ├── OpportunityCards.jsx # Featured undervalued stocks
-│   ├── DataTable.jsx    # Comprehensive sector breakdown
-│   └── Footer.jsx       # Professional footer
+│   ├── Footer.jsx       # App footer
+│   ├── LandingPage.jsx  # Public landing page
+│   ├── Dashboard.jsx    # Main authenticated dashboard
+│   ├── SectorDropdown.jsx # Sector selection
+│   ├── Chart.jsx        # Data visualization (Recharts)
+│   ├── DataTable.jsx    # Stock data tables
+│   └── OpportunityCards.jsx # Investment opportunities
+├── contexts/
+│   └── AuthContext.jsx  # Firebase Auth integration
+├── config/
+│   ├── firebase.js      # Firebase configuration
+│   └── firestoreSchema.js # Database schema definitions
+├── services/
+│   ├── firestoreService.js    # Database operations
+│   └── financialApiService.js # External API integration
 ├── constants/
-│   └── sectorData.js    # Centralized stock data definitions
-├── App.jsx             # Main application logic and state
-├── App.css             # Global styles and responsive design
-└── main.jsx           # React application entry point
+│   └── sectorData.js    # Static sector data
+├── App.jsx             # Main routing and auth logic
+└── main.jsx           # React app entry point
 ```
 
-### Data Flow Architecture
+### Firebase Integration
 
-1. **App.jsx** manages all application state (sector selection, stock data, loading states)
-2. **Mock data generation** creates realistic financial metrics (P/E, P/B, ROE, price changes)
-3. **Sector calculations** automatically compute means and identify undervalued opportunities
-4. **Props-based component communication** passes data down to specialized components
+**Authentication & User Management:**
+
+- Firebase Auth with email/password authentication
+- User profile creation and management in Firestore
+- Protected routes for authenticated content
+- User preferences and settings persistence
+
+**Firestore Database Collections:**
+
+- `users` - User profiles, preferences, settings
+- `watchlists` - User-created stock watchlists
+- `portfolios` - User portfolio tracking
+- `reports` - AI-generated analysis reports
+- `stock_data` - Cached financial data
+- `sector_analytics` - Sector performance metrics
+
+### Data Architecture
+
+**Real-time Financial Data:**
+
+- Integration with multiple financial APIs (Alpha Vantage, Yahoo Finance)
+- Automatic fallback between API providers
+- Data caching in Firestore with 1-hour refresh intervals
+- Rate limiting and error handling for external APIs
+
+**User Data Flow:**
+
+1. **Authentication** via Firebase Auth creates user session
+2. **Profile Loading** fetches user data from Firestore
+3. **Dashboard Data** combines user data with cached financial metrics
+4. **Real-time Updates** sync user actions (watchlist changes, portfolio updates)
 
 ### Key Technical Patterns
 
-#### State Management
+**State Management:**
 
-- Uses React hooks (useState, useEffect) for state management
-- Centralized state in App.jsx with props passed to child components
-- Real-time calculations for sector averages and stock rankings
+- React Context for authentication state (`AuthContext`)
+- React Router v6 for client-side routing
+- Local component state for UI-specific data
+- Firestore real-time listeners for data synchronization
 
-#### Data Processing
+**API Integration:**
 
-- **generateMockMetrics()** creates realistic financial data
-- **fetchStockData()** processes sector data and sorts stocks by price (ascending)
-- **getUndervaluedStocks()** filters stocks below sector mean with "Undervalued" rating
+- Service layer abstraction (`FinancialApiService`)
+- Multi-provider fallback strategy for reliability
+- Sophisticated rate limiting and caching
+- Valuation calculations (Graham Number, DCF estimation)
+- Environment variable configuration for all API keys
 
-#### Chart Implementation
+**Security & Error Handling:**
 
-- Uses Recharts library with custom styling
-- **CustomYAxisTick** component highlights sector mean value in red on Y-axis
-- Color-coded bars: green for undervalued (below mean), blue for overvalued
-- Reference line shows sector mean across chart
+- Firebase Security Rules for data access control
+- Input validation and sanitization
+- Graceful error handling with user feedback
+- Safe number formatting with `formatNumber()` helpers
+- API key management via Vite environment variables (`import.meta.env.VITE_*`)
 
-### Styling Architecture
+**Configuration Management:**
 
-- **CSS-in-CSS** approach with modular class naming
-- **Responsive design** with breakpoints at 1024px, 768px, 480px
-- **Professional color palette** with consistent gradient themes
-- **Component-specific styling** with clear class hierarchies
+- Dynamic Firebase configuration loading from environment
+- Vite-compatible environment variable format
+- Development/production environment separation
+- Secure credential handling with `.env` file exclusion
 
-### Data Constants
+## Development Workflow
 
-Stock data is centralized in `src/constants/sectorData.js` with:
+### Firebase Setup Required
 
-- 48 companies across 5 sectors
-- Market cap information for each company
-- Consistent symbol/name/marketCap structure
+Before development, configure Firebase:
 
-## Important Implementation Details
+1. Set up Firebase project at https://console.firebase.google.com/
+2. Enable Authentication with Email/Password and Google providers
+3. Set up Firestore database with security rules
+4. Configure environment variables in `.env` file:
+   - **Firebase Configuration:**
+     - `VITE_FIREBASE_API_KEY`
+     - `VITE_FIREBASE_AUTH_DOMAIN`
+     - `VITE_FIREBASE_PROJECT_ID`
+     - `VITE_FIREBASE_STORAGE_BUCKET`
+     - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+     - `VITE_FIREBASE_APP_ID`
+     - `VITE_FIREBASE_MEASUREMENT_ID`
+   - **API Keys:**
+     - `VITE_ALPHA_VANTAGE_API_KEY` for Alpha Vantage API access
+     - `VITE_OPENAI_API_KEY` for future AI features (optional)
+     - `VITE_ANTHROPIC_API_KEY` for future AI features (optional)
 
-### Chart Customization
+### Key Development Areas
 
-The Chart component includes sophisticated customizations:
+**Authentication Flow:**
 
-- Custom Y-axis ticks that include sector mean value
-- Dynamic tick calculation based on actual price range
-- Highlighted sector mean tick in red with bold styling
-- Reference line positioning aligned with Y-axis value
+- Landing page → Login/Signup → Dashboard
+- Protected routes require authentication
+- User profile creation on first signup
+- Password reset functionality included
 
-### Responsive Behavior
+**Financial Data Management:**
 
-- Mobile-first CSS approach
-- Chart header stacks vertically on tablets
-- Data table uses horizontal scrolling on mobile
-- Opportunity cards collapse to single column
+- Service layer handles all external API calls
+- Automatic data caching and refresh logic
+- Multi-provider redundancy for reliability
+- Complex valuation algorithms for stock analysis
 
-### Mock Data Characteristics
+**User Features:**
 
-- Prices: $50-$450 range with integer values
-- P/E Ratios: 5.00-35.00 range
-- P/B Ratios: 0.50-5.50 range
-- ROE: 5.00-30.00% range
-- Daily Change: -5.00% to +5.00% range
-- Rating: 70% "Undervalued", 30% "Fair Value"
+- Personal watchlists and portfolios
+- AI report generation (framework in place)
+- Customizable preferences and settings
+- Historical data tracking and analytics
+
+## Important Implementation Notes
+
+### API Integration
+
+The application integrates with two financial data providers:
+
+- **Alpha Vantage** (primary) - Comprehensive data, 500 calls/day limit
+- **Yahoo Finance** (fallback) - Free, no API key required
+
+**Note:** IEX Cloud API was officially retired on August 31, 2024, and has been removed from the integration.
+
+### Firestore Schema
+
+User data is structured with clear relationships:
+
+- User profiles link to watchlists, portfolios, and reports
+- Stock data is cached globally with update timestamps
+- Sector analytics are pre-computed and stored
+
+### Chart Implementation
+
+Uses Recharts library with advanced customizations:
+
+- Sector mean reference lines
+- Color-coded valuation indicators
+- Custom Y-axis formatting
+- Responsive design for mobile devices
 
 ## Branding & Content
 
-- Application name: ""Seedling🌱""
+- Application name: "Seedling🌱"
 - Company: "Seedling Analytics"
-- Professional disclaimer required in footer
-- AI report generation buttons (mock functionality)
-- Investment advice warnings included
+- Professional financial disclaimers required
+- Focus on conservative value investing principles
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### Firebase Configuration Errors
+- **Error**: `auth/configuration-not-found` or `Firebase: Error (auth/configuration-not-found)`
+- **Solution**: Ensure Firebase config uses environment variables correctly in `src/config/firebase.js`
+- **Check**: Verify all `VITE_FIREBASE_*` variables are set in `.env` file
+
+#### TypeError: `.toFixed is not a function`
+- **Error**: JavaScript errors when displaying financial data
+- **Solution**: All financial display components use `formatNumber()` helper function
+- **Check**: Ensure components like `DataTable.jsx` and `OpportunityCards.jsx` have proper number formatting
+
+#### Landing Page UI Issues
+- **Issue**: Poor contrast or invisible buttons
+- **Solution**: Hero title uses `color: #ffffff` with `text-shadow` for readability
+- **Check**: `.cta-button.demo` class exists for "Try Demo" button styling
+
+#### Environment Variables Not Loading
+- **Issue**: API calls failing or Firebase not initializing
+- **Solution**: Use `import.meta.env.VITE_*` format (not `process.env.REACT_APP_*`)
+- **Check**: Restart dev server after changing `.env` file
+
+#### Development Server Issues
+- **Issue**: Changes not reflecting in browser
+- **Solution**: Hard refresh (Ctrl+F5) or restart dev server
+- **Command**: `npm run dev` to start development server
+
+### Development Commands
+
+```bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Run ESLint
+npm run lint
+```
+
+### Quick Setup Checklist
+
+1. ✅ Firebase project configured with Authentication and Firestore
+2. ✅ Environment variables set in `.env` file
+3. ✅ Google Authentication enabled in Firebase Console
+4. ✅ Alpha Vantage API key obtained (optional for demo mode)
+5. ✅ Development server running (`npm run dev`)
+
+### File Structure Notes
+
+- **Components**: All React components have proper imports and error handling
+- **Services**: Firebase and API services use environment variables
+- **Styling**: CSS uses consistent naming and responsive breakpoints
+- **Configuration**: Firebase config dynamically loads from environment

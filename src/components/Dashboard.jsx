@@ -27,19 +27,49 @@ const Dashboard = () => {
   const fetchStockData = async (sector) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const stocks = SECTOR_STOCKS[sector];
       const symbols = stocks.map(stock => stock.symbol);
-      
-      // Fetch real stock data from financial API
+
+      // If no authenticated user (demo mode), use mock data immediately
+      if (!currentUser) {
+        console.log('Demo mode detected, using mock data');
+        setError('Demo Mode - Using sample data');
+
+        // Generate demo mock data
+        const mockStockData = stocks.map((stock) => ({
+          symbol: stock.symbol,
+          name: stock.name,
+          sector: sector,
+          currentPrice: Math.floor(Math.random() * 400) + 50,
+          previousClose: Math.floor(Math.random() * 400) + 50,
+          dayChange: (Math.random() * 10 - 5).toFixed(2),
+          dayChangePercent: (Math.random() * 10 - 5).toFixed(2),
+          volume: Math.floor(Math.random() * 1000000) + 100000,
+          metrics: {
+            peRatio: parseFloat((Math.random() * 30 + 5).toFixed(2)),
+            pbRatio: parseFloat((Math.random() * 5 + 0.5).toFixed(2)),
+            roe: parseFloat((Math.random() * 25 + 5).toFixed(2)),
+          },
+          valuation: {
+            rating: Math.random() > 0.3 ? 'Undervalued' : 'Fair Value',
+            confidenceScore: Math.floor(Math.random() * 40) + 50
+          }
+        }));
+
+        processStockData(mockStockData);
+        return;
+      }
+
+      // For authenticated users, try to fetch real stock data from financial API
       const realStockData = await financialApiService.getMultipleStocksData(symbols);
-      
+
       // If API fails, fallback to mock data with a warning
       if (realStockData.length === 0) {
         console.warn('Financial API returned no data, using fallback mock data');
         setError('Using demo data - API unavailable');
-        
+
         // Fallback mock data generation
         const mockStockData = stocks.map((stock) => ({
           symbol: stock.symbol,
@@ -60,13 +90,13 @@ const Dashboard = () => {
             confidenceScore: Math.floor(Math.random() * 40) + 50
           }
         }));
-        
+
         processStockData(mockStockData);
         return;
       }
-      
+
       processStockData(realStockData);
-      
+
     } catch (error) {
       console.error('Error fetching stock data:', error);
       setError('Failed to fetch market data. Please try again.');
@@ -206,12 +236,25 @@ const Dashboard = () => {
           </div>
           
           <div className="user-section">
-            <span className="welcome-text">
-              Welcome back, {userProfile?.displayName || currentUser?.displayName || 'User'}!
-            </span>
-            <button className="logout-btn" onClick={handleLogout}>
-              Sign Out
-            </button>
+            {currentUser ? (
+              <>
+                <span className="welcome-text">
+                  Welcome back, {userProfile?.displayName || currentUser?.displayName || 'User'}!
+                </span>
+                <button className="logout-btn" onClick={handleLogout}>
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="welcome-text">
+                  Demo Mode - Try our platform!
+                </span>
+                <button className="logout-btn" onClick={() => navigate('/')}>
+                  Back to Home
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>

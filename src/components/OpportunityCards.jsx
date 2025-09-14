@@ -1,4 +1,10 @@
 const OpportunityCards = ({ undervaluedStocks, onGenerateReport }) => {
+  // Helper function to safely format numbers
+  const formatNumber = (value, decimals = 2) => {
+    const num = parseFloat(value);
+    return isNaN(num) ? '0.00' : num.toFixed(decimals);
+  };
+
   if (undervaluedStocks.length === 0) {
     return (
       <section className="opportunities-section">
@@ -26,15 +32,15 @@ const OpportunityCards = ({ undervaluedStocks, onGenerateReport }) => {
             <div className="metrics-grid">
               <div className="metric">
                 <span className="metric-label">Price</span>
-                <span className="metric-value">${(stock.currentPrice || stock.price || 0).toFixed(2)}</span>
+                <span className="metric-value">${formatNumber(stock.currentPrice || stock.price || 0, 2)}</span>
               </div>
               <div className="metric">
                 <span className="metric-label">P/E Ratio</span>
-                <span className="metric-value">{(stock.metrics?.peRatio || stock.peRatio || 0).toFixed(1)}</span>
+                <span className="metric-value">{formatNumber(stock.metrics?.peRatio || stock.peRatio || 0, 1)}</span>
               </div>
               <div className="metric">
                 <span className="metric-label">ROE</span>
-                <span className="metric-value">{(stock.metrics?.roe || stock.roe || 0).toFixed(1)}%</span>
+                <span className="metric-value">{formatNumber(stock.metrics?.roe || stock.roe || 0, 1)}%</span>
               </div>
               <div className="metric">
                 <span className="metric-label">Change</span>
@@ -43,13 +49,13 @@ const OpportunityCards = ({ undervaluedStocks, onGenerateReport }) => {
                     parseFloat(stock.dayChangePercent || stock.change || 0) >= 0 ? 'positive' : 'negative'
                   }`}
                 >
-                  {(stock.dayChangePercent || stock.change || 0).toFixed(2)}%
+                  {formatNumber(stock.dayChangePercent || stock.change || 0, 2)}%
                 </span>
               </div>
               {stock.valuation?.confidenceScore && (
                 <div className="metric">
                   <span className="metric-label">Confidence</span>
-                  <span className="metric-value">{stock.valuation.confidenceScore}%</span>
+                  <span className="metric-value">{formatNumber(stock.valuation.confidenceScore, 0)}%</span>
                 </div>
               )}
             </div>

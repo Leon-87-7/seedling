@@ -31,14 +31,10 @@ function App() {
           element={currentUser ? <Navigate to="/dashboard" /> : <Signup />} 
         />
         
-        {/* Protected routes */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } 
+        {/* Dashboard route - now accessible without authentication */}
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
         />
         
         {/* Fallback route */}
