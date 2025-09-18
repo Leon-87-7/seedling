@@ -42,7 +42,8 @@ src/
 │   └── firestoreSchema.js # Database schema definitions
 ├── services/
 │   ├── firestoreService.js    # Database operations
-│   └── financialApiService.js # External API integration
+│   ├── financialApiService.js # External API integration
+│   └── screening.js           # Advanced stock screening engine
 ├── constants/
 │   └── sectorData.js    # Static sector data
 ├── App.jsx             # Main routing and auth logic
@@ -142,8 +143,9 @@ Before development, configure Firebase:
 
 **Authentication Flow:**
 
-- Landing page → Login/Signup → Dashboard
-- Protected routes require authentication
+- Landing page → Login/Signup OR Demo Access → Dashboard
+- Dashboard accessible in both authenticated and demo modes
+- Protected features (watchlists, portfolios) require authentication within dashboard
 - User profile creation on first signup
 - Password reset functionality included
 
@@ -153,6 +155,14 @@ Before development, configure Firebase:
 - Automatic data caching and refresh logic
 - Multi-provider redundancy for reliability
 - Complex valuation algorithms for stock analysis
+- Advanced stock screening engine with fundamental analysis
+
+**Demo Mode Implementation:**
+
+- Public dashboard access without authentication required
+- Smart data loading: real API data for authenticated users, mock data for demos
+- Seamless fallback to mock data when APIs fail
+- Demo UI indicators and special messaging for non-authenticated users
 
 **User Features:**
 
@@ -161,14 +171,35 @@ Before development, configure Firebase:
 - Customizable preferences and settings
 - Historical data tracking and analytics
 
+### Advanced Stock Screening Engine
+
+The `src/services/screening.js` file implements a sophisticated fundamental analysis system:
+
+- **StockScreener Class**: Comprehensive screening with sector comparison
+- **Composite Scoring Algorithm**: Weighted scoring system
+  - Valuation (40% weight): P/E, P/B, P/S ratios vs sector averages
+  - Financial Health (30% weight): ROE, debt-to-equity, cash flow metrics
+  - Growth (20% weight): Revenue and net income growth trends
+  - Management Efficiency (10% weight): ROE vs sector, operating margins
+- **Sector-Specific Criteria**: Customized screening parameters by industry (Technology, Healthcare, Finance, Utilities)
+- **Performance Features**: 15-minute caching system, batch processing, red flag detection
+- **Filtering System**: Multi-layer validation including penny stock filters, debt thresholds, and growth requirements
+- **Transparency**: Detailed score breakdowns and red flag identification for each stock
+
 ## Important Implementation Notes
 
 ### API Integration
 
-The application integrates with two financial data providers:
+The application implements a three-tier fallback strategy:
 
-- **Alpha Vantage** (primary) - Comprehensive data, 500 calls/day limit
-- **Yahoo Finance** (fallback) - Free, no API key required
+- **Primary**: Alpha Vantage - Comprehensive data, 500 calls/day limit
+- **Secondary**: Yahoo Finance - Free, no API key required
+- **Tertiary**: Mock data generation for demos and API failures
+
+**Smart Data Loading:**
+- Authenticated users receive real API data with mock fallback
+- Demo users get immediate mock data for instant functionality
+- Graceful error handling with user-friendly messaging
 
 **Note:** IEX Cloud API was officially retired on August 31, 2024, and has been removed from the integration.
 
